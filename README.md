@@ -1,6 +1,7 @@
-# go-api
+# fuel-downloader
 
-A simple Go REST API with Postgres persistence.
+A Go REST API with Postgres persistence.
+It downloads rates from https://www.eia.gov/petroleum/gasdiesel/
 
 ## 🚀 Features
 

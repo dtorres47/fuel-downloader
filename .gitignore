@@ -6,4 +6,4 @@
 *.exe
 
 # IDE configs
-.idea/
+.idea/.env
