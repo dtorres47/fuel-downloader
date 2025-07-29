@@ -29,7 +29,7 @@ func main() {
 
 	// 2) Wire up service & controller
 	userService := service.NewUserService(conn)
-	userController := controller.NewUserController(userService)
+	userController := controller.NewFuelController(userService)
 
 	// 3) Register routes and start server
 	router.RegisterRoutes(userController)
