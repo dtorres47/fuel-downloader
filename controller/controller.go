@@ -1,27 +1,26 @@
 package controller
 
 import (
-	"encoding/json"
-	"go-api/service"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 )
 
 type FuelController struct {
-	userService service.UserService
 }
 
-func NewFuelController(userService service.UserService) *FuelController {
-	//return &FuelController{userService: userService}
+func NewFuelController() *FuelController {
 	return &FuelController{}
 }
 
-func (fc *FuelController) RatesHandler(responseWriter http.ResponseWriter, request *http.Request) {
+func (fuelController *FuelController) RatesHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodGet {
-		responseWriter.WriteHeader(http.StatusMethodNotAllowed)
+		http.Error(responseWriter, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	apiKey := os.Getenv("S8oR4yf6NugwNKVp6KELAlboeRXt8I7zhyw6EbZl")
+	apiKey := os.Getenv("EIA_API_KEY")
 	if apiKey == "" {
 		http.Error(responseWriter, "EIA_API_KEY not set", http.StatusInternalServerError)
 	}
@@ -43,20 +42,19 @@ func (fc *FuelController) RatesHandler(responseWriter http.ResponseWriter, reque
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Printf("EIA request failed: %v", err)
-		http.Error(w, "failed fetching fuel rates", http.StatusBadGateway)
+		http.Error(responseWriter, "Failed getting fuel rates", http.StatusBadGateway)
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("EIA bad status: %s", resp.Status)
-		http.Error(w, "EIA API returned non‑200", http.StatusBadGateway)
+		log.Printf("EIA API returned non-200 status: %s", resp.Status)
+		http.Error(responseWriter, "EIA API returned non-200", http.StatusBadGateway)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	// simply proxy the JSON through
-	if _, err := w.ReadFrom(resp.Body); err != nil {
-		log.Printf("error streaming body: %v", err)
+	responseWriter.Header().Set("Content-Type", "application/json")
+	if _, err := io.Copy(responseWriter, resp.Body); err != nil {
+		log.Printf("Error streaming response: %v", err)
 	}
 }

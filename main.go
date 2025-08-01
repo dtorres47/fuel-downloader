@@ -9,7 +9,6 @@ import (
 	"go-api/controller"
 	"go-api/db"
 	"go-api/router"
-	"go-api/service"
 )
 
 func main() {
@@ -22,17 +21,17 @@ func main() {
 		log.Fatalf("DB connection failed: %v", err)
 	}
 	defer func() {
-		if cerr := conn.Close(); cerr != nil {
-			log.Printf("Error closing DB connection: %v", cerr)
+		if err := conn.Close(); err != nil {
+			log.Printf("Error closing DB connection: %v", err)
 		}
 	}()
 
 	// 2) Wire up service & controller
-	userService := service.NewUserService(conn)
-	userController := controller.NewFuelController(userService)
+	fuelController := controller.NewFuelController()
+	http.HandleFunc("/fuel/rates", fuelController.RatesHandler)
 
 	// 3) Register routes and start server
-	router.RegisterRoutes(userController)
+	router.RegisterRoutes(fuelController)
 	fmt.Println("Server running on http://127.0.0.1:8080")
 	log.Fatal(http.ListenAndServe("127.0.0.1:8080", nil))
 }
