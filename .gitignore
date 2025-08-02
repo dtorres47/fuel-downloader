@@ -1,9 +1,9 @@
-# ignore environment files
-.env
+# ignore all environment files
+*.env
 
 # Go build outputs
 /bin/
 *.exe
 
 # IDE configs
-.idea/.env
+.idea/

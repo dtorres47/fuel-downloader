@@ -101,3 +101,10 @@ Verify the container is running:
 ```bash
 docker ps
 ```
+
+## Running the App
+
+Copy and fill in your API key:
+```bash
+cp config.env.template config.env
+# edit config.env and insert your real key

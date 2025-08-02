@@ -20,9 +20,9 @@ func (fuelController *FuelController) RatesHandler(responseWriter http.ResponseW
 		http.Error(responseWriter, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	apiKey := os.Getenv("EIA_API_KEY")
+	apiKey := os.Getenv("API_KEY")
 	if apiKey == "" {
-		http.Error(responseWriter, "EIA_API_KEY not set", http.StatusInternalServerError)
+		http.Error(responseWriter, "API_KEY not set", http.StatusInternalServerError)
 	}
 
 	url := fmt.Sprintf(
