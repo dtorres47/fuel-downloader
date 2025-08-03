@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go-api/service"
 	"log"
 	"net/http"
 
@@ -25,9 +26,12 @@ func main() {
 			log.Printf("Error closing DB connection: %v", err)
 		}
 	}()
+	//defer conn.Close()
 
 	// 2) Wire up service & controller
-	fuelController := controller.NewFuelController()
+	fuelService := service.NewFuelService()
+	fuelController := controller.NewFuelController(fuelService)
+
 	http.HandleFunc("/fuel/rates", fuelController.RatesHandler)
 
 	// 3) Register routes and start server

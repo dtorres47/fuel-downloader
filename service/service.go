@@ -1,57 +1,68 @@
 package service
 
-import "database/sql"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"os"
+)
 
-type User struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+type FuelRate struct {
+	Period string  `json:"period"`
+	Value  float64 `json:"value"`
 }
 
-type UserService interface {
-	GetUser() (User, error)
-	CreateUser(User) (User, error)
-	ListUsers() ([]User, error)
+type FuelService interface {
+	GetRates() ([]FuelRate, error)
 }
 
-type defaultUserService struct {
-	db *sql.DB
+type fuelServiceImpl struct {
+	apiKey string
 }
 
-func NewUserService(db *sql.DB) UserService {
-	return &defaultUserService{db: db}
+func NewFuelService() FuelService {
+	return &fuelServiceImpl{
+		apiKey: os.Getenv("API_KEY"),
+	}
 }
 
-func (s *defaultUserService) GetUser() (User, error) {
-	var u User
-	err := s.db.QueryRow(
-		"SELECT id, name, email FROM users ORDER BY id LIMIT 1",
-	).Scan(&u.ID, &u.Name, &u.Email)
-	return u, err
-}
+func (s *fuelServiceImpl) GetRates() ([]FuelRate, error) {
+	if s.apiKey == "" {
+		return nil, fmt.Errorf("API_KEY not set")
+	}
 
-func (s *defaultUserService) CreateUser(u User) (User, error) {
-	err := s.db.QueryRow(
-		"INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id",
-		u.Name, u.Email,
-	).Scan(&u.ID)
-	return u, err
-}
+	url := fmt.Sprintf(
+		"https://api.eia.gov/v2/petroleum/pri/gnd/data/"+
+			"?frequency=monthly"+
+			"&data[0]=value"+
+			"&facets[product][]=EPD2D"+
+			"&start=2025-01"+
+			"&sort[0][column]=period"+
+			"&sort[0][direction]=desc"+
+			"&offset=0"+
+			"&length=5000"+
+			"&api_key=%s",
+		s.apiKey,
+	)
 
-func (s *defaultUserService) ListUsers() ([]User, error) {
-	rows, err := s.db.Query("SELECT id, name, email FROM users ORDER BY id")
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer resp.Body.Close()
 
-	var users []User
-	for rows.Next() {
-		var user User
-		if err := rows.Scan(&user.ID, &user.Name, &user.Email); err != nil {
-			return nil, err
-		}
-		users = append(users, user)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("EIA API returned %s", resp.Status)
 	}
-	return users, rows.Err()
+
+	// EIA responds with a big JSON envelope, so unwrap it:
+	var envelope struct {
+		Response struct {
+			Data []FuelRate `json:"data"`
+		} `json:"response"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&envelope); err != nil {
+		return nil, err
+	}
+	return envelope.Response.Data, nil
 }
