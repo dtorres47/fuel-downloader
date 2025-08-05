@@ -1,4 +1,3 @@
-// router/router.go
 package router
 
 import (
@@ -6,8 +5,6 @@ import (
 	"net/http"
 )
 
-func RegisterRoutes(userController *controller.UserController) {
-	http.HandleFunc("/", userController.HelloHandler)
-	http.HandleFunc("/user", userController.UserHandler)
-	http.HandleFunc("/users", userController.UsersHandler)
+func RegisterRoutes(fuelController *controller.FuelController) {
+	http.HandleFunc("/fuel/rates", fuelController.RatesHandler)
 }
