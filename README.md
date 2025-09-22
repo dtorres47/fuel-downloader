@@ -4,6 +4,7 @@ This repository showcases my **methodology for skilling up in Go** while **demon
 I'm structuring this project to reflect how I **learn, translate, and apply concepts** across languages — from my strong .NET and Angular background into Go.  
 
 This project started from a **real-world need in my own work**.  
+
 I create freight invoices for my corporation, **manually** referencing the [EIA website](https://www.eia.gov/petroleum/gasdiesel/) to look up diesel fuel prices.  
 
 The **fuel-downloader** automates that task:  
