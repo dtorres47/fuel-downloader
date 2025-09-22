@@ -1,62 +1,63 @@
 # fuel-downloader
 
-This repository showcases my **methodology for skilling up in Go** while **demonstrating my skills across multiple stacks**.  
-I'm structuring this project to reflect how I **learn, translate, and apply concepts** across languages — from my strong .NET and Angular background into Go.  
-
 This project started from a **real-world need in my own work**.  
+I create freight invoices for my corporation, and part of that process requires referencing the [EIA website](https://www.eia.gov/petroleum/gasdiesel/) to look up diesel fuel prices.  
 
-I create freight invoices for my corporation, **manually** referencing the [EIA website](https://www.eia.gov/petroleum/gasdiesel/) to look up diesel fuel prices.  
+Until now, I’ve been doing this **manually** — navigating to the site, finding the latest value, and copying it into my workflow. That’s repetitive and error-prone.  
 
-The **fuel-downloader** automates that task:  
-- It fetches the latest U.S. diesel price from the EIA API.  
-- It persists the data in Postgres for historical tracking.  
-- It exports a CSV for immediate use in invoicing.  
-
----
-
-## 🌱 Methodology (Go-Centric)
-
-This project demonstrates how I can implement a Go API across stacks.
-- It uses **scaffolded enterprise architecture** (vertical slice style: domain, infra, usecase, cmd).  
-- One microservice (API) is anchored using a **C# (.NET)** design.  
-- A second microservice is **translateed from .NET to Go**.  
-- I provide an **Angular front-end** to provide a tangible UI.  
-- Includes **Postgres persistence**.
+This project automates that task:  
+- Fetches the latest U.S. diesel price from the EIA API.  
+- Persists the data in Postgres for historical tracking.  
+- Exports a CSV for invoicing.  
+- Exposes a **Go microservice API** (via [Chi](https://github.com/go-chi/chi)) to serve fuel prices to other apps.  
 
 ---
 
+## 🌱 Methodology
+
+- My **primary focus** is leveling up in **Go**. I’m deliberately using an **enterprise scaffold** (vertical slice: domain, infra, usecase, cmd, api) to simulate real-world design.  
+- I built this project around a **real business problem** to ensure it’s practical, not just academic.  
+- I implement first in **C#/.NET**, then translate into **Go**, to accelerate learning while proving cross-language adaptability.  
+- I also provide an **Angular front-end** as a tangible UI layer.  
+
+This methodology demonstrates:  
+- **Go learning journey** → API, persistence, and automation.  
+- **Cross-language strength** → C#, Angular, Go.  
+- **Full-stack capability** → DB + API + UI.  
+
+---
 
 ## 📂 Project Structure
 ```
 fuel-downloader/
-├── go/                         # Go implementation (learning + showcase)
+├── go/
 │   ├── go.mod
 │   ├── cmd/
-│   │   ├── fuel-latest/        # Main app (fetch → upsert → export)
-│   │   └── migrate/            # Migration helper (applies SQL schema)
+│   │   ├── fuel-latest/          # CLI app: fetch → upsert → export
+│   │   ├── migrate/              # CLI app: apply DB schema
+│   │   └── api/                  # NEW: Go microservice entrypoint
+│   │       └── main.go           # Chi router, HTTP handlers
 │   └── internal/
-│       ├── domain/             # Core entity
-│       ├── infra/              # External systems (EIA, Postgres, CSV)
-│       └── usecase/            # Orchestration logic
+│       ├── domain/               # FuelRate entity
+│       ├── infra/
+│       │   ├── eia/              # API client
+│       │   ├── postgres/         # DB repo
+│       │   ├── csvexp/           # CSV export
+│       │   └── api/              # HTTP handlers (Chi)
+│       └── usecase/
+│           └── getlatest/        # Orchestration
 │
-├── csharp/                     # .NET implementation (parallel)
+├── csharp/                       # .NET version
 │   └── src/...
 │
-├── angular/                    # Angular front-end (parallel)
+├── angular/                      # Angular front-end
 │   └── src/...
 │
 ├── db/
-│   └── eia_fuel_price.sql      # Schema (idempotent, safe to rerun)
-│
+│   └── eia_fuel_price.sql
 ├── scripts/
-│   ├── fuel-latest.bat         # Double-click to run app
-│   ├── build.ps1               # Build binary
-│   ├── lint-build.ps1          # Lint + build
-│   └── test.ps1                # Lint + build + run end-to-end
-│
-├── .gitignore
+│   └── ...                       # Helper scripts
 └── README.md
-```
 
 ---
 
@@ -77,6 +78,7 @@ Set in **Windows** (global) or in **GoLand run/debug config** (local):
 ```
 EIA_API_KEY=your-real-api-key
 FUEL_DSN=postgres://postgres:postgres@localhost:[port]/fuel?sslmode=disable
+# Default port: 5432 (use your own if different)
 FUEL_AREA=NUS
 FUEL_OUT=[your directory]\fuel-latest.csv
 ```
@@ -138,13 +140,3 @@ Generated `fuel-latest.csv`:
 product_code,product_name,area_code,area_name,period,value,unit,generated_utc
 EPD2D,No 2 Diesel,NUS,U.S.,2025-08,3.744,$/GAL,2025-09-20T06:39:46Z
 ```
-
----
-
-## 🎯 Why This Matters
-
-This project is my **Go learning journey** that **automates my real-world need**.
-- It shows my process for **adopting Go** while staying grounded in my .NET and Angular expertise.  
-- It is a **real-world app** with **clean architecture** translated **across stacks**.
-
----
