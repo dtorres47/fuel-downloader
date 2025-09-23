@@ -5,7 +5,7 @@ I create freight invoices for my corporation, and part of that process requires 
 
 Until now, I’ve been doing this **manually** — navigating to the site, finding the latest value, and copying it into my workflow. That’s repetitive and error-prone.  
 
-This project automates that task:  
+The **fuel-downloader** project automates that task:  
 - Fetches the latest U.S. diesel price from the EIA API.  
 - Persists the data in Postgres for historical tracking.  
 - Exports a CSV for invoicing.  
@@ -19,6 +19,7 @@ This project automates that task:
 - I built this project around a **real business problem** to ensure it’s practical, not just academic.  
 - I implement first in **C#/.NET**, then translate into **Go**, to accelerate learning while proving cross-language adaptability.  
 - I also provide an **Angular front-end** as a tangible UI layer.  
+- All three implementations — Go, C#, and Angular — follow the **same vertical slice structure**, so the design is consistent and comparable across stacks.  
 
 This methodology demonstrates:  
 - **Go learning journey** → API, persistence, and automation.  
@@ -27,43 +28,9 @@ This methodology demonstrates:
 
 ---
 
-## 📂 Project Structure
-```
-fuel-downloader/
-├── go/
-│   ├── go.mod
-│   ├── cmd/
-│   │   ├── fuel-latest/          # CLI app: fetch → upsert → export
-│   │   ├── migrate/              # CLI app: apply DB schema
-│   │   └── api/                  # NEW: Go microservice entrypoint
-│   │       └── main.go           # Chi router, HTTP handlers
-│   └── internal/
-│       ├── domain/               # FuelRate entity
-│       ├── infra/
-│       │   ├── eia/              # API client
-│       │   ├── postgres/         # DB repo
-│       │   ├── csvexp/           # CSV export
-│       │   └── api/              # HTTP handlers (Chi)
-│       └── usecase/
-│           └── getlatest/        # Orchestration
-│
-├── csharp/                       # .NET version
-│   └── src/...
-│
-├── angular/                      # Angular front-end
-│   └── src/...
-│
-├── db/
-│   └── eia_fuel_price.sql
-├── scripts/
-│   └── ...                       # Helper scripts
-└── README.md
-
----
-
 ## 🔧 Prerequisites
 - [Go 1.22+](https://go.dev/dl/)  
-- .NET 8 (for C# version).
+- .NET 8 (for C# version)  
 - Angular CLI (for Angular front-end)  
 - PostgreSQL (local or Docker)  
 - EIA API Key (free from [EIA Open Data](https://www.eia.gov/opendata/))  
@@ -73,20 +40,21 @@ fuel-downloader/
 ## ⚙️ Setup (Go)
 
 ### 1. Environment Variables
-Set in **Windows** (global) or in **GoLand run/debug config** (local):
+Set in **Windows** (global) or in **GoLand run/debug config** (local):  
 
 ```
 EIA_API_KEY=your-real-api-key
 FUEL_DSN=postgres://postgres:postgres@localhost:[port]/fuel?sslmode=disable
-# Default port: 5432 (use your own if different)
 FUEL_AREA=NUS
 FUEL_OUT=[your directory]\fuel-latest.csv
 ```
 
+_Default port: 5432 (use your own if different)_  
+
 ---
 
 ### 2. Install Dependencies
-From the `go` folder:
+From the `go` folder:  
 
 ```powershell
 cd [your directory]\fuel-downloader\go
@@ -107,7 +75,7 @@ cd [your directory]\fuel-downloader\go
 go run .\cmd\migrate
 ```
 
-or build/run it:
+or build/run it:  
 
 ```powershell
 go build -o .\bin\migrate.exe .\cmd\migrate
@@ -134,7 +102,7 @@ From double-click:
 ---
 
 ## 📊 Example Output
-Generated `fuel-latest.csv`:
+Generated `fuel-latest.csv`:  
 
 ```
 product_code,product_name,area_code,area_name,period,value,unit,generated_utc
