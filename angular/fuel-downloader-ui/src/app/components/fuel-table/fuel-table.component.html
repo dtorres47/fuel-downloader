@@ -1,12 +1,13 @@
-<div *ngIf="fuelRate">
-    <table>
-        <tr><th>Product</th><td>{{ fuelRate.productName }}</td></tr>
-        <tr><th>Area</th><td>{{ fuelRate.areaName }}</td></tr>
-        <tr><th>Period</th><td>{{ fuelRate.period }}</td></tr>
-        <tr><th>Value</th><td>{{ fuelRate.value }} {{ fuelRate.unit }}</td></tr>
-    </table>
-    <button (click)="refresh()">Refresh</button>
+<div *ngIf="fuelRate() as rate; else loading">
+  <table>
+    <tr><th>Product</th><td>{{ rate.productName }}</td></tr>
+    <tr><th>Area</th><td>{{ rate.areaName }}</td></tr>
+    <tr><th>Period</th><td>{{ rate.period }}</td></tr>
+    <tr><th>Value</th><td>{{ rate.value }} {{ rate.unit }}</td></tr>
+  </table>
+  <button (click)="refresh()">Refresh</button>
 </div>
-<div *ngIf="!fuelRate">
-    Loading fuel price...
-</div>
+
+<ng-template #loading>
+  Loading fuel price...
+</ng-template>

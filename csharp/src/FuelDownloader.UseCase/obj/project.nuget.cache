@@ -1,8 +1,15 @@
 {
   "version": 2,
-  "dgSpecHash": "oKQ/LPBCckM=",
+  "dgSpecHash": "7FFZXXodU/8=",
   "success": true,
-  "projectFilePath": "V:\\Coding\\fuel-downloader\\csharp\\src\\FuelDownloader.UseCase\\FuelDownloader.UseCase.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "C:\\GitHub\\fuel-downloader\\csharp\\src\\FuelDownloader.UseCase\\FuelDownloader.UseCase.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\TCon47\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\TCon47\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.2\\microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\TCon47\\.nuget\\packages\\npgsql\\9.0.3\\npgsql.9.0.3.nupkg.sha512",
+    "C:\\Users\\TCon47\\.nuget\\packages\\system.io.pipelines\\9.0.9\\system.io.pipelines.9.0.9.nupkg.sha512",
+    "C:\\Users\\TCon47\\.nuget\\packages\\system.text.encodings.web\\9.0.9\\system.text.encodings.web.9.0.9.nupkg.sha512",
+    "C:\\Users\\TCon47\\.nuget\\packages\\system.text.json\\9.0.9\\system.text.json.9.0.9.nupkg.sha512"
+  ],
   "logs": []
 }

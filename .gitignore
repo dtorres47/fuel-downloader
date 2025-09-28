@@ -1,0 +1,27 @@
+# Environment files
+*.env
+
+# Go build outputs
+/go/bin/
+/go/dist/
+/go/coverage.out
+*.exe
+
+# .NET build outputs
+/csharp/**/bin/
+/csharp/**/obj/
+
+# Angular build outputs
+/angular/fuel-downloader-ui/dist/
+/angular/fuel-downloader-ui/node_modules/
+
+# IDE configs
+**/.idea/
+**/.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS-specific files
+.DS_Store
+Thumbs.db

@@ -1,23 +1,24 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, computed, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { GetLatestService } from '../../usecase/get-latest.service';
-import { FuelRate } from '../../domain/fuel-rate';
 
 @Component({
-    selector: 'app-fuel-table',
-    templateUrl: './fuel-table.component.html',
-    styleUrls: ['./fuel-table.component.css']
+  selector: 'app-fuel-table',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './fuel-table.component.html',
+  styleUrls: ['./fuel-table.component.css']
 })
 export class FuelTableComponent implements OnInit {
-    fuelRate: FuelRate | null = null;
+  fuelRate = computed(() => this.getLatest.latestRate());
 
-    constructor(private getLatest: GetLatestService) {}
+  constructor(private getLatest: GetLatestService) {}
 
-    ngOnInit(): void {
-        this.getLatest.getLatestObservable().subscribe(rate => this.fuelRate = rate);
-        this.getLatest.refresh();
-    }
+  ngOnInit(): void {
+    this.getLatest.refresh();
+  }
 
-    refresh(): void {
-        this.getLatest.refresh();
-    }
+  refresh(): void {
+    this.getLatest.refresh();
+  }
 }

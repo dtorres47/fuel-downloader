@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "V:\\Coding\\fuel-downloader\\csharp\\src\\FuelDownloader.Infra\\FuelDownloader.Infra.csproj": {}
+    "C:\\GitHub\\fuel-downloader\\csharp\\src\\FuelDownloader.Infra\\FuelDownloader.Infra.csproj": {}
   },
   "projects": {
-    "V:\\Coding\\fuel-downloader\\csharp\\src\\FuelDownloader.Domain\\FuelDownloader.Domain.csproj": {
+    "C:\\GitHub\\fuel-downloader\\csharp\\src\\FuelDownloader.Domain\\FuelDownloader.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "V:\\Coding\\fuel-downloader\\csharp\\src\\FuelDownloader.Domain\\FuelDownloader.Domain.csproj",
+        "projectUniqueName": "C:\\GitHub\\fuel-downloader\\csharp\\src\\FuelDownloader.Domain\\FuelDownloader.Domain.csproj",
         "projectName": "FuelDownloader.Domain",
-        "projectPath": "V:\\Coding\\fuel-downloader\\csharp\\src\\FuelDownloader.Domain\\FuelDownloader.Domain.csproj",
+        "projectPath": "C:\\GitHub\\fuel-downloader\\csharp\\src\\FuelDownloader.Domain\\FuelDownloader.Domain.csproj",
         "packagesPath": "C:\\Users\\TCon47\\.nuget\\packages\\",
-        "outputPath": "V:\\Coding\\fuel-downloader\\csharp\\src\\FuelDownloader.Domain\\obj\\",
+        "outputPath": "C:\\GitHub\\fuel-downloader\\csharp\\src\\FuelDownloader.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -44,7 +44,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0": {
@@ -65,18 +65,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.301/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "V:\\Coding\\fuel-downloader\\csharp\\src\\FuelDownloader.Infra\\FuelDownloader.Infra.csproj": {
+    "C:\\GitHub\\fuel-downloader\\csharp\\src\\FuelDownloader.Infra\\FuelDownloader.Infra.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "V:\\Coding\\fuel-downloader\\csharp\\src\\FuelDownloader.Infra\\FuelDownloader.Infra.csproj",
+        "projectUniqueName": "C:\\GitHub\\fuel-downloader\\csharp\\src\\FuelDownloader.Infra\\FuelDownloader.Infra.csproj",
         "projectName": "FuelDownloader.Infra",
-        "projectPath": "V:\\Coding\\fuel-downloader\\csharp\\src\\FuelDownloader.Infra\\FuelDownloader.Infra.csproj",
+        "projectPath": "C:\\GitHub\\fuel-downloader\\csharp\\src\\FuelDownloader.Infra\\FuelDownloader.Infra.csproj",
         "packagesPath": "C:\\Users\\TCon47\\.nuget\\packages\\",
-        "outputPath": "V:\\Coding\\fuel-downloader\\csharp\\src\\FuelDownloader.Infra\\obj\\",
+        "outputPath": "C:\\GitHub\\fuel-downloader\\csharp\\src\\FuelDownloader.Infra\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -97,8 +97,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "V:\\Coding\\fuel-downloader\\csharp\\src\\FuelDownloader.Domain\\FuelDownloader.Domain.csproj": {
-                "projectPath": "V:\\Coding\\fuel-downloader\\csharp\\src\\FuelDownloader.Domain\\FuelDownloader.Domain.csproj"
+              "C:\\GitHub\\fuel-downloader\\csharp\\src\\FuelDownloader.Domain\\FuelDownloader.Domain.csproj": {
+                "projectPath": "C:\\GitHub\\fuel-downloader\\csharp\\src\\FuelDownloader.Domain\\FuelDownloader.Domain.csproj"
               }
             }
           }
@@ -113,11 +113,21 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "Npgsql": {
+              "target": "Package",
+              "version": "[9.0.3, )"
+            },
+            "System.Text.Json": {
+              "target": "Package",
+              "version": "[9.0.9, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -134,7 +144,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.301/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

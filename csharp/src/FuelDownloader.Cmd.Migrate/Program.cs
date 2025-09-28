@@ -1,13 +1,21 @@
-﻿class Program
+﻿namespace FuelDownloader.Cmd.Migrate;
+
+using FuelDownloader.Infra.Postgres;
+
+class Program
 {
     static async Task Main(string[] args)
     {
-        // TODO: read env var for DSN
-        var dsn = "TODO-get-from-env";
+        var dsn = Environment.GetEnvironmentVariable("FUEL_DSN") ?? "";
 
-        // TODO: open DB connection and run SQL from db/schema/eia_fuel_price.sql
-        await Task.CompletedTask;
+        if (string.IsNullOrWhiteSpace(dsn))
+        {
+            Console.WriteLine("❌ Missing FUEL_DSN environment variable.");
+            return;
+        }
 
+        // For now, just test connection
+        await DbInitializer.ApplyMigrationsAsync(dsn);
         Console.WriteLine("✅ Migration applied successfully");
     }
 }

@@ -1,18 +1,23 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { of, delay, Observable } from 'rxjs';
 import { FuelRate } from '../domain/fuel-rate';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class FuelService {
-    private apiUrl = 'http://localhost:8080/fuel/latest'; // Go/C# API placeholder
+  getLatest(area: string = 'NUS'): Observable<FuelRate> {
+    const mock: FuelRate = {
+      productCode: 'EPD2D',
+      productName: 'No 2 Diesel',
+      areaCode: 'NUS',
+      areaName: 'U.S.',
+      period: '2025-08',
+      value: 3.744,
+      unit: '$/GAL'
+    };
 
-    constructor(private http: HttpClient) {}
-
-    getLatest(): Observable<FuelRate> {
-        // TODO: Replace with real backend API
-        return this.http.get<FuelRate>(this.apiUrl);
-    }
+    // Simulate network latency with delay
+    return of(mock).pipe(delay(1000));
+  }
 }

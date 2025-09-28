@@ -1,19 +1,23 @@
-﻿using FuelDownloader.Domain;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace FuelDownloader.Infra.CsvExport;
 
-namespace FuelDownloader.Infra.CsvExport
+using FuelDownloader.Domain;
+using System.Globalization;
+
+public static class Writer
 {
-    public static class Writer
+    public static async Task WriteAsync(string filePath, FuelRate fuelRate)
     {
-        // Placeholder: write a FuelRate to a CSV file
-        public static async Task WriteAsync(string filePath, FuelRate fuelRate)
-        {
-            // TODO: Create or append to CSV file, write headers + row
-            await Task.CompletedTask;
-        }
+        using var writer = new StreamWriter(filePath, false); // overwrite
+        await writer.WriteLineAsync("product_code,product_name,area_code,area_name,period,value,unit,generated_utc");
+
+        await writer.WriteLineAsync(string.Join(",",
+            fuelRate.ProductCode,
+            fuelRate.ProductName,
+            fuelRate.AreaCode,
+            fuelRate.AreaName,
+            fuelRate.Period.ToString("yyyy-MM"),
+            fuelRate.Value.ToString("F4", CultureInfo.InvariantCulture),
+            fuelRate.Unit,
+            DateTime.UtcNow.ToString("o")));
     }
 }

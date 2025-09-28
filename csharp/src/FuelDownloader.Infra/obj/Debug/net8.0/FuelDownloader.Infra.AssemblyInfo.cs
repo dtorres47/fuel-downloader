@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FuelDownloader.Infra")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+72c9c29cf70cecb3f2970f6cc7337bb2f396764d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0264dd1d93e59ff2c4459794dd2a42ce331a8bfb")]
 [assembly: System.Reflection.AssemblyProductAttribute("FuelDownloader.Infra")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FuelDownloader.Infra")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
