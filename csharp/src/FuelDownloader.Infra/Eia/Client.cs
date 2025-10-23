@@ -1,7 +1,9 @@
 ﻿using FuelDownloader.Domain;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -12,41 +14,80 @@ namespace FuelDownloader.Infra.Eia
     {
         private readonly string _apiKey;
         private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<Client> _logger;
 
-        public Client(string apiKey, HttpClient? httpClient = null)
+        public Client(string apiKey, IHttpClientFactory httpClientFactory)
         {
             _apiKey = apiKey;
-            _httpClient = httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<FuelRate?> FetchLatestDieselAsync(string area = "NUS")
         {
-            var url = $"https://api.eia.gov/v2/petroleum/pri/gnd/data/?" +
-                      $"frequency=monthly" +
-                      $"&data[0]=value" +
-                      $"&facets[product][]=EPD2D" +
-                      $"&facets[duoarea][]={area}" +
-                      $"&sort[0][column]=period&sort[0][direction]=desc" +
-                      $"&offset=0&length=1" +
-                      $"&api_key={_apiKey}";
+            try
+            {
+                var url = BuildUrl(area);
+                var response = await _httpClient.GetAsync(url);
 
-            var resp = await _httpClient.GetAsync(url);
-            if (!resp.IsSuccessStatusCode) return null;
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("EIA API returned {StatusCode} for area {Area}",
+                        response.StatusCode, area);
+                    return null;
+                }
 
-            var json = await resp.Content.ReadAsStringAsync();
-            var doc = JsonDocument.Parse(json);
+                var json = await response.Content.ReadAsStringAsync();
+                return ParseResponse(json);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Network error getting fuel rate for area {Area}", area);
+                return null;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed to parse EIA response for area {Area}", area);
+                return null;
+            }
+        }
 
-            var data = doc.RootElement.GetProperty("response").GetProperty("data")[0];
+        private string BuildUrl(string area)
+        {
+            var builder = new StringBuilder("https://api.eia.gov/v2/petroleum/pri/gnd/data/?");
+            builder.Append("frequency=monthly");
+            builder.Append("&data[0]=value");
+            builder.Append("&facets[product][]=EPD2D");
+            builder.Append($"&facets[duoarea][]={Uri.EscapeDataString(area)}");
+            builder.Append("&sort[0][column]=period&sort[0][direction]=desc");
+            builder.Append("&offset=0&length=1");
+            builder.Append($"&api_key={_apiKey}");
+            return builder.ToString();
+        }
 
+        private static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        private FuelRate? ParseResponse(string json)
+        {
+            var doc = JsonDocument.Parse(json, new JsonDocumentOptions
+            {
+                AllowTrailingCommas = true
+            });
+
+            if (!doc.RootElement.TryGetProperty("response", out var response) ||
+                !response.TryGetProperty("data", out var data) ||
+                data.GetArrayLength() == 0)
+            {
+                return null;
+            }
+
+            JsonElement firstItem = data[0];
             return new FuelRate
             {
-                ProductCode = data.GetProperty("product").GetString() ?? "",
-                ProductName = data.GetProperty("product-name").GetString() ?? "",
-                AreaCode = data.GetProperty("duoarea").GetString() ?? "",
-                AreaName = data.GetProperty("area-name").GetString() ?? "",
-                Period = DateTime.Parse(data.GetProperty("period").GetString() ?? DateTime.UtcNow.ToString("yyyy-MM")),
-                Value = decimal.Parse(data.GetProperty("value").GetString() ?? "0"),
-                Unit = data.GetProperty("units").GetString() ?? ""
+                ProductCode = firstItem.GetProperty("product").GetString() ?? "",
             };
         }
     }

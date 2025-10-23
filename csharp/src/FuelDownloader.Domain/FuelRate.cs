@@ -1,4 +1,6 @@
-﻿namespace FuelDownloader.Domain
+﻿using System.Text.Json.Serialization;
+
+namespace FuelDownloader.Domain
 {
     public class FuelRate
     {
@@ -10,4 +12,26 @@
         public decimal Value { get; set; }
         public string Unit { get; set; } = string.Empty;
     }
+
+    // TODO: Add DTOs
+    //public class EiaResponse
+    //{
+    //    public ResponseData Response { get; set; }
+    //}
+
+    //public class ResponseData
+    //{
+    //    public List<FuelData> Data { get; set; }
+    //}
+
+    //public class FuelData
+    //{
+    //    [JsonPropertyName("product")]
+    //    public string ProductCode { get; set; }
+
+    //    [JsonPropertyName("product-name")]
+    //    public string ProductName { get; set; }
+
+    //    // ... etc
+    //}
 }

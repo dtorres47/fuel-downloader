@@ -1,14 +1,17 @@
 ﻿namespace FuelDownloader.UseCase.GetLatest;
 
 using FuelDownloader.Domain;
+using FuelDownloader.Infra.CsvExport;
 using FuelDownloader.Infra.Eia;
 using FuelDownloader.Infra.Postgres;
-using FuelDownloader.Infra.CsvExport;
+using Microsoft.Extensions.Logging;
+using System.Threading;
 
 public class Executor
 {
     private readonly Client _client;
     private readonly Repo _repo;
+    private readonly ILogger<Executor> _logger;
 
     public Executor(Client client, Repo repo)
     {
@@ -16,14 +19,30 @@ public class Executor
         _repo = repo;
     }
 
-    public async Task<FuelRate?> ExecuteAsync(string outputPath, string area = "NUS")
+    public async Task<GetLatestResult> ExecuteAsync(string outputPath, string area = "NUS", CancellationToken cancellationToken = default)
     {
-        var fr = await _client.FetchLatestDieselAsync(area);
-        if (fr == null) return null;
+        try
+        {
+            _logger.LogInformation("Fetching latest diesel price for area {Area}", area);
 
-        await _repo.UpsertAsync(fr);
-        await Writer.WriteAsync(outputPath, fr);
+            var fuelRate = await _client.FetchLatestDieselAsync(area);
+            if (fuelRate == null)
+            {
+                return GetLatestResult.Failure("Failed to get data from EIA API");
+            }
 
-        return fr;
+            await _repo.UpsertAsync(fuelRate);
+            await Writer.WriteAsync(outputPath, fuelRate);
+
+            _logger.LogInformation("Successfully processed fuel rate: {Product} {Period} {Value}",
+                fuelRate.ProductCode, fuelRate.Period, fuelRate.Value);
+
+            return GetLatestResult.Success(fuelRate);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing GetLatest use case");
+            return GetLatestResult.Failure($"Unexpected error: {ex.Message}");
+        }
     }
 }

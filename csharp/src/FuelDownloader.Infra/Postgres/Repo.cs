@@ -1,15 +1,23 @@
 ﻿namespace FuelDownloader.Infra.Postgres;
 
-using Npgsql;
 using FuelDownloader.Domain;
+using Npgsql;
+using NpgsqlTypes;
+using Polly;
+using Dapper;
 
 public class Repo
 {
     private readonly string _connectionString;
+    private readonly IAsyncPolicy _retryPolicy;
 
     public Repo(string connectionString)
     {
         _connectionString = connectionString;
+        _retryPolicy = Policy
+            .Handle<NpgsqlException>()
+            .WaitAndRetryAsync(3, retryAttempt =>
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
     }
 
     public async Task UpsertAsync(FuelRate fuelRate)
@@ -17,27 +25,62 @@ public class Repo
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
 
-        var cmd = new NpgsqlCommand(@"
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            await using (var conn = CreateConnection())
+            
+            await conn.OpenAsync();
+
+            const string sql = @"
             INSERT INTO eia.fuel_price
                 (product_code, area_code, period, value, unit, product_name, area_name, raw)
             VALUES
-                (@product_code, @area_code, @period, @value, @unit, @product_name, @area_name, '{}'::jsonb)
+                (@ProductCode, @AreaCode, @Period, @Value, @Unit, @ProductName, @AreaName, '{}'::jsonb)
             ON CONFLICT (product_code, area_code, period)
             DO UPDATE SET
-                value = EXCLUDED.value,
-                unit = EXCLUDED.unit,
-                updated_at = NOW(),
-                raw = EXCLUDED.raw;
-        ", conn);
+            value = EXCLUDED.value,
+            unit = EXCLUDED.unit,
+            updated_at = NOW(),
+            raw = EXCLUDED.raw;
+            ";
 
-        cmd.Parameters.AddWithValue("product_code", fuelRate.ProductCode);
-        cmd.Parameters.AddWithValue("area_code", fuelRate.AreaCode);
-        cmd.Parameters.AddWithValue("period", fuelRate.Period);
-        cmd.Parameters.AddWithValue("value", fuelRate.Value);
-        cmd.Parameters.AddWithValue("unit", fuelRate.Unit);
-        cmd.Parameters.AddWithValue("product_name", fuelRate.ProductName);
-        cmd.Parameters.AddWithValue("area_name", fuelRate.AreaName);
+            var cmd = new NpgsqlCommand(sql, conn);
 
-        await cmd.ExecuteNonQueryAsync();
+            cmd.Parameters.Add(new NpgsqlParameter("@product_code", NpgsqlDbType.Text)
+            { Value = fuelRate.ProductCode });
+
+            cmd.Parameters.Add(new NpgsqlParameter("@value", NpgsqlDbType.Numeric)
+            { Value = fuelRate.Value });
+
+            cmd.Parameters.Add(new NpgsqlParameter("@area_code", NpgsqlDbType.Text)
+            { Value = fuelRate.AreaCode });
+
+            cmd.Parameters.Add(new NpgsqlParameter("@period", NpgsqlDbType.Date)
+            { Value = fuelRate.Period });
+
+            cmd.Parameters.Add(new NpgsqlParameter("@unit", NpgsqlDbType.Text)
+            { Value = fuelRate.Unit });
+
+            cmd.Parameters.Add(new NpgsqlParameter("@product_name", NpgsqlDbType.Text)
+            { Value = fuelRate.ProductName });
+
+            cmd.Parameters.Add(new NpgsqlParameter("@area_name", NpgsqlDbType.Text)
+            { Value = fuelRate.AreaName });
+
+            await conn.ExecuteAsync(sql, fuelRate);
+
+        });
+    }
+
+    private NpgsqlConnection CreateConnection()
+    {
+        var connStringBuilder = new NpgsqlConnectionStringBuilder(_connectionString)
+        {
+            MaxPoolSize = 20,
+            MinPoolSize = 5,
+            ConnectionIdleLifetime = 300,
+            Timeout = 30
+        };
+        return new NpgsqlConnection(connStringBuilder.ConnectionString);
     }
 }

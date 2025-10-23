@@ -1,27 +1,173 @@
-# Environment files
-*.env
-
-# Go build outputs
-/go/bin/
-/go/dist/
-/go/coverage.out
+# Go build artifacts
 *.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+# vendor/   # uncomment if you ever vendor deps
 
-# .NET build outputs
-/csharp/**/bin/
-/csharp/**/obj/
+# Visual Studio solution & user files
+.vs/
+[Bb]in/
+[Oo]bj/
+**/bin/
+**/obj/
+**/.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vsidx
 
-# Angular build outputs
-/angular/fuel-downloader-ui/dist/
-/angular/fuel-downloader-ui/node_modules/
+# IDE & editor files
+.idea/
+.vscode/
 
-# IDE configs
-**/.idea/
-**/.vscode/
-*.iml
-*.ipr
-*.iws
-
-# OS-specific files
+# OS files
 .DS_Store
 Thumbs.db
+
+# Logs & data
+*.log
+*.db
+
+# Local secrets
+config.json
+appsettings.Development.json
+
+# Ignore media files in shared content folder
+/content/videos/*
+/content/images/*
+/content/audio/*
+!/content/videos/.keep
+!/content/images/.keep
+!/content/audio/.keep
+
+# Ignore media files in wwwroot/content but keep folder structure
+**/wwwroot/content/*
+!**/wwwroot/content/.keep
+
+[TestResults]/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# Build results
+x64/
+x86/
+[Aa]rtifacts/
+[Ll]og/
+[Ll]ogs/
+
+# Rider / ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+
+*.vsidx
+
+
+# ==========================
+# Visual Studio ignores
+# ==========================
+.vs/
+*.vsidx
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+[Ll]ogs/
+x64/
+x86/
+[Aa]rtifacts/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# Test results
+[Tt]est[Rr]esults/
+*.VisualState.xml
+*.vsp
+*.vspscc
+*.psess
+*.pidb
+*.svclog
+*.scc
+
+# Rider / ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+
+# Others
+*.cache
+*.dbmdl
+*.bak
+*.log
+
+# ==========================
+# Go ignores
+# ==========================
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace file
+go.work
+
+# Go vendor
+/vendor/
+
+# ==========================
+# Angular / Node.js ignores
+# ==========================
+# dependencies
+/node_modules/
+/bower_components/
+
+# production
+/dist/
+/build/
+/tmp/
+
+# misc
+/.angular/cache/
+.npm/
+.eslintcache
+
+# IDE/editor
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# environment files
+*.env
+*.local
+
+

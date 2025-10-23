@@ -3,35 +3,49 @@
 using FuelDownloader.Infra.Eia;
 using FuelDownloader.Infra.Postgres;
 using FuelDownloader.UseCase.GetLatest;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 class Program
 {
     static async Task Main(string[] args)
     {
-        var apiKey = Environment.GetEnvironmentVariable("EIA_API_KEY") ?? "";
-        var dsn = Environment.GetEnvironmentVariable("FUEL_DSN") ?? "";
+        var host = Host.CreateDefaultBuilder(args)
+            .ConfigureServices((context, services) =>
+            {
+                // Configuration
+                var apiKey = Environment.GetEnvironmentVariable("EIA_API_KEY") ?? "";
+                var dsn = Environment.GetEnvironmentVariable("FUEL_DSN") ?? "";
+
+                // Register services
+                services.AddHttpClient("EiaClient");
+                services.AddSingleton(sp => new Client(apiKey,
+                    sp.GetRequiredService<IHttpClientFactory>()));
+                services.AddSingleton(new Repo(dsn));
+                services.AddTransient<Executor>();
+                services.AddLogging(builder => builder.AddConsole());
+            })
+            .Build();
+
+        var executor = host.Services.GetRequiredService<Executor>();
+        var logger = host.Services.GetRequiredService<ILogger<Program>>();
+
         var outputPath = Environment.GetEnvironmentVariable("FUEL_OUT") ?? "fuel-latest.csv";
         var area = Environment.GetEnvironmentVariable("FUEL_AREA") ?? "NUS";
 
-        if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(dsn))
+        var result = await executor.ExecuteAsync(outputPath, area);
+
+        if (result.IsSuccess && result.Data != null)
         {
-            Console.WriteLine("❌ Missing required environment variables: EIA_API_KEY or FUEL_DSN");
-            return;
-        }
-
-        var client = new Client(apiKey);
-        var repo = new Repo(dsn);
-        var executor = new Executor(client, repo);
-
-        var fr = await executor.ExecuteAsync(outputPath, area);
-
-        if (fr != null)
-        {
-            Console.WriteLine($"✅ {fr.ProductCode} {fr.Period:yyyy-MM} {fr.Value} {fr.Unit} → {outputPath}");
+            var fr = result.Data;
+            Console.WriteLine($"{fr.ProductCode} {fr.Period:yyyy-MM} {fr.Value} {fr.Unit} → {outputPath}");
         }
         else
         {
-            Console.WriteLine("❌ Failed to fetch fuel rate");
+            logger.LogError("Failed to get fuel rate: {Error}", result.ErrorMessage);
+            Console.WriteLine($"{result.ErrorMessage}");
+            Environment.Exit(1);
         }
     }
 }
