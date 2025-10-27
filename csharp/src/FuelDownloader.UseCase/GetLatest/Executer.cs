@@ -5,7 +5,6 @@ using FuelDownloader.Infra.CsvExport;
 using FuelDownloader.Infra.Eia;
 using FuelDownloader.Infra.Postgres;
 using Microsoft.Extensions.Logging;
-using System.Threading;
 
 public class Executor
 {
@@ -13,13 +12,17 @@ public class Executor
     private readonly Repo _repo;
     private readonly ILogger<Executor> _logger;
 
-    public Executor(Client client, Repo repo)
+    public Executor(Client client, Repo repo, ILogger<Executor> logger)
     {
         _client = client;
         _repo = repo;
+        _logger = logger;
     }
 
-    public async Task<GetLatestResult> ExecuteAsync(string outputPath, string area = "NUS", CancellationToken cancellationToken = default)
+    public async Task<GetLatestResult> ExecuteAsync(
+        string outputPath,
+        string area = "NUS",
+        CancellationToken cancellationToken = default)
     {
         try
         {

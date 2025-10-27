@@ -1,6 +1,7 @@
 ﻿namespace FuelDownloader.Cmd.Migrate;
 
 using FuelDownloader.Infra.Postgres;
+using Microsoft.Extensions.Logging;
 
 class Program
 {
@@ -10,12 +11,29 @@ class Program
 
         if (string.IsNullOrWhiteSpace(dsn))
         {
-            Console.WriteLine("❌ Missing FUEL_DSN environment variable.");
+            Console.WriteLine("Missing FUEL_DSN environment variable.");
+            Environment.Exit(1);
             return;
         }
 
-        // For now, just test connection
-        await DbInitializer.ApplyMigrationsAsync(dsn);
-        Console.WriteLine("✅ Migration applied successfully");
+        // Create a simple console logger
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+            builder.SetMinimumLevel(LogLevel.Information);
+        });
+
+        var logger = loggerFactory.CreateLogger<Program>();
+
+        try
+        {
+            await DbInitializer.ApplyMigrationsAsync(dsn, logger);
+            Console.WriteLine("Migration applied successfully");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Migration failed: {ex.Message}");
+            Environment.Exit(1);
+        }
     }
 }
