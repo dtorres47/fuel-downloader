@@ -1,9 +1,10 @@
-package main
+package repo
 
 import (
 	"context"
 	"encoding/csv"
 	"fmt"
+	"fuel-downloader/domain"
 	"os"
 )
 
@@ -42,7 +43,7 @@ func ExportToCSV(db *Service, filename string) error {
 
 	// Write data rows
 	for rows.Next() {
-		var fr FuelRate
+		var fr domain.FuelRate
 		err := rows.Scan(&fr.Product, &fr.ProductName, &fr.DuoArea, &fr.AreaName,
 			&fr.Period, &fr.Value, &fr.Units, &fr.CreatedAt)
 		if err != nil {

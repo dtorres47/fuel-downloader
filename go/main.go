@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"fuel-downloader/repo"
+	"fuel-downloader/service"
 	"log"
 	"os"
 	"strings"
@@ -18,7 +20,7 @@ func main() {
 	csvFilename := "fuel_rates.csv"
 
 	// Connect to database
-	db, err := New(connString)
+	db, err := repo.New(connString)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
@@ -26,7 +28,7 @@ func main() {
 
 	// Get latest fuel rates from EIA
 	fmt.Println("Downloading fuel rates from EIA API...")
-	fuelRates, err := GetLatestFuelRates(apiKey)
+	fuelRates, err := service.GetLatestFuelRates(apiKey)
 	if err != nil {
 		log.Fatal("Failed to get fuel rates:", err)
 	}
@@ -34,7 +36,7 @@ func main() {
 
 	// Save to database
 	fmt.Println("Saving to database...")
-	err = SaveFuelRates(db, fuelRates)
+	err = repo.SaveFuelRates(db, fuelRates)
 	if err != nil {
 		log.Fatal("Failed to save fuel rates:", err)
 	}
@@ -42,7 +44,7 @@ func main() {
 
 	// Export to CSV
 	fmt.Println("Exporting to CSV...")
-	err = ExportToCSV(db, csvFilename)
+	err = repo.ExportToCSV(db, csvFilename)
 	if err != nil {
 		log.Fatal("Failed to export CSV:", err)
 	}
