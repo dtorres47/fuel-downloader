@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"fuel-downloader/repo"
+	"fuel-downloader/adapters"
 	"fuel-downloader/service"
 	"log"
 	"os"
@@ -20,7 +20,7 @@ func main() {
 	csvFilename := "fuel_rates.csv"
 
 	// Connect to database
-	db, err := repo.New(connString)
+	db, err := adapters.New(connString)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
@@ -36,7 +36,7 @@ func main() {
 
 	// Save to database
 	fmt.Println("Saving to database...")
-	err = repo.SaveFuelRates(db, fuelRates)
+	err = adapters.SaveFuelRates(db, fuelRates)
 	if err != nil {
 		log.Fatal("Failed to save fuel rates:", err)
 	}
@@ -44,7 +44,7 @@ func main() {
 
 	// Export to CSV
 	fmt.Println("Exporting to CSV...")
-	err = repo.ExportToCSV(db, csvFilename)
+	err = adapters.ExportToCSV(db, csvFilename)
 	if err != nil {
 		log.Fatal("Failed to export CSV:", err)
 	}
