@@ -10,17 +10,26 @@ import (
 	"time"
 )
 
+// EIA API endpoint for diesel prices
+// TODO: move this to config
+var eiaUrl = "https://api.eia.gov/v2/petroleum/pri/gnd/data/?api_key=%s&frequency=weekly&data[0]=value&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=10"
+
 type FuelRate = domain.FuelRate
 type EIAResponse = domain.EIAResponse
 
-/*
-GetLatestFuelRates
+type FuelService struct {
+	repo domain.Repository // interface, not concrete type
+}
 
-Gets diesel fuel prices from EIA API.
-*/
-func GetLatestFuelRates(apiKey string) ([]FuelRate, error) {
-	// EIA API endpoint for diesel prices
-	url := fmt.Sprintf("https://api.eia.gov/v2/petroleum/pri/gnd/data/?api_key=%s&frequency=weekly&data[0]=value&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=10", apiKey)
+func NewFuelService(repo domain.Repository) *FuelService {
+	return &FuelService{repo: repo}
+}
+
+// GetFromEIA Gets diesel fuel prices from EIA API.
+// TODO: remove apiKey param
+func (s *FuelService) GetFromEIA(apiKey string) ([]FuelRate, error) {
+
+	url := fmt.Sprintf(eiaUrl, apiKey)
 
 	// Make HTTP request
 	resp, err := http.Get(url)
@@ -65,7 +74,7 @@ func GetLatestFuelRates(apiKey string) ([]FuelRate, error) {
 		fuelRate := FuelRate{
 			Product:     item.Product,
 			ProductName: item.ProductName,
-			DuoArea:     item.DuoArea,
+			AreaCode:    item.DuoArea,
 			AreaName:    item.AreaName,
 			Period:      period,
 			Value:       value,

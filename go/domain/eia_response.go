@@ -1,8 +1,6 @@
 package domain
 
-/*
-EIA API response structure (simplified for diesel prices)
-*/
+// EIAResponse EIA response struct (simplified for diesel prices)
 type EIAResponse struct {
 	Response struct {
 		Data []struct {

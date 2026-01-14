@@ -1,11 +1,13 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
 type FuelRate struct {
 	ID          int       `json:"id"`
 	Product     string    `json:"product"`
-	DuoArea     string    `json:"duoarea"`
+	AreaCode    string    `json:"duoarea"`
 	Period      time.Time `json:"period"`
 	Value       float64   `json:"value"`
 	Units       string    `json:"units"`

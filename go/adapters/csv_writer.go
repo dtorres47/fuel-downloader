@@ -9,16 +9,17 @@ import (
 )
 
 // ExportToCSV queries all fuel rates and writes them to a CSV file
-func ExportToCSV(db *Service, filename string) error {
+func ExportToCSV(r *PostgresRepository, filename string) error {
+	// TODO: implement locks for concurrent writes
+
 	// Query all fuel rates from database
 	sqlQuery := `
-		SELECT product, product_name, duoarea, area_name, 
-		       period, value, units, created_at 
-		FROM eia.fuel_rate 
+		SELECT product_code, area_code, period, value, unit, product_name, area_name, created_at
+		FROM eia.fuel_rate
 		ORDER BY period DESC
 	`
 
-	rows, err := db.Pool.Query(context.Background(), sqlQuery)
+	rows, err := r.Pool.Query(context.Background(), sqlQuery)
 	if err != nil {
 		return fmt.Errorf("failed to query fuel rates: %w", err)
 	}
@@ -44,7 +45,7 @@ func ExportToCSV(db *Service, filename string) error {
 	// Write data rows
 	for rows.Next() {
 		var fr domain.FuelRate
-		err := rows.Scan(&fr.Product, &fr.ProductName, &fr.DuoArea, &fr.AreaName,
+		err := rows.Scan(&fr.Product, &fr.ProductName, &fr.AreaCode, &fr.AreaName,
 			&fr.Period, &fr.Value, &fr.Units, &fr.CreatedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan row: %w", err)
@@ -54,7 +55,7 @@ func ExportToCSV(db *Service, filename string) error {
 		record := []string{
 			fr.Product,
 			fr.ProductName,
-			fr.DuoArea,
+			fr.AreaCode,
 			fr.AreaName,
 			fr.Period.Format("2006-01-02"),
 			fmt.Sprintf("%.4f", fr.Value),
