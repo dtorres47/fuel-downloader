@@ -8,6 +8,8 @@ namespace FuelPricePipeline.Infra.Eia
 {
     public class Client : IEiaClient
     {
+        private const string BaseUrl = "https://api.eia.gov/v2/petroleum/pri/gnd/data/?";
+
         private readonly string _apiKey;
         private readonly HttpClient _httpClient;
         private readonly ILogger<Client> _logger;
@@ -48,7 +50,7 @@ namespace FuelPricePipeline.Infra.Eia
                 var query = BuildQuery(area);
                 _logger.LogDebug("Fetching fuel rate from EIA API: {Url}", BaseUrl + query);
 
-                var response = await _httpClient.GetAsync(url);
+                var response = await _httpClient.GetAsync($"{BaseUrl}{query}&api_key={_apiKey}");
 
                 if (!response.IsSuccessStatusCode)
                 {
