@@ -27,7 +27,8 @@ func NewHttpServer(fuelService *service.FuelService) *HttpServer {
 func (s *HttpServer) GetEIADataHandler(w http.ResponseWriter, r *http.Request) {
 	fuelRates, err := s.fuelService.GetFromEIA()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println("GetFromEIA failed:", err)
+		http.Error(w, "failed to fetch data from EIA", http.StatusInternalServerError)
 		return
 	}
 
@@ -39,7 +40,8 @@ func (s *HttpServer) GetEIADataHandler(w http.ResponseWriter, r *http.Request) {
 func (s *HttpServer) GetAllHandler(w http.ResponseWriter, r *http.Request) {
 	fuelRates, err := s.fuelService.GetAll(r.Context())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println("GetAll failed:", err)
+		http.Error(w, "failed to get fuel rates", http.StatusInternalServerError)
 		return
 	}
 

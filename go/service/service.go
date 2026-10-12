@@ -3,17 +3,19 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"fuel-price-pipeline/domain"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 )
 
 // EIA API endpoint for diesel prices
 // TODO: move this to config
-var eiaUrl = "https://api.eia.gov/v2/petroleum/pri/gnd/data/?api_key=%s&frequency=weekly&data[0]=value&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=10"
+var eiaUrl = "https://api.eia.gov/v2/petroleum/pri/gnd/data/?api_key=%s&frequency=weekly&data[0]=value&facets[product][]=EPD2D&facets[duoarea][]=NUS&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=10"
 
 var httpClient = &http.Client{Timeout: 15 * time.Second}
 
@@ -43,28 +45,28 @@ func NewFuelService(repo domain.Repository, apiKey string) *FuelService {
 
 // GetFromEIA Gets diesel fuel prices from EIA API.
 func (s *FuelService) GetFromEIA() ([]domain.DieselFuelPrice, error) {
+	reqURL := fmt.Sprintf(eiaUrl, s.apiKey)
 
-	url := fmt.Sprintf(eiaUrl, s.apiKey)
-
-	// Make HTTP request
-	resp, err := httpClient.Get(url)
+	resp, err := httpClient.Get(reqURL)
 	if err != nil {
+		// Keep the error and drop the URL
+		var urlErr *url.Error
+		if errors.As(err, &urlErr) {
+			err = urlErr.Err
+		}
 		return nil, fmt.Errorf("failed to fetch from EIA: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// Check status code
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("EIA API returned status %d", resp.StatusCode)
 	}
 
-	// Read response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
 	}
 
-	// Parse JSON
 	var eiaResp EIAResponse
 	err = json.Unmarshal(body, &eiaResp)
 	if err != nil {
@@ -74,13 +76,12 @@ func (s *FuelService) GetFromEIA() ([]domain.DieselFuelPrice, error) {
 	// Convert to DieselFuelPrice structs
 	var fuelRates []domain.DieselFuelPrice
 	for _, item := range eiaResp.Response.Data {
-		// Parse period string (format: "YYYY-MM-DD")
+
 		period, err := time.Parse("2006-01-02", item.Period)
 		if err != nil {
 			continue // Skip invalid dates
 		}
 
-		// Parse value string to float64
 		value, err := strconv.ParseFloat(item.Value, 64)
 		if err != nil {
 			continue // Skip invalid values
