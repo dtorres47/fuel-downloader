@@ -1,6 +1,4 @@
-namespace FuelPricePipeline.Infra.Postgres;
-
-using FuelPricePipeline.Domain;
+﻿namespace FuelPricePipeline.Domain;
 
 public interface IFuelRepository
 {

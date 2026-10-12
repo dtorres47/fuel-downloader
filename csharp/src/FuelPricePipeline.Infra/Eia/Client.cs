@@ -1,5 +1,6 @@
 ﻿using FuelPricePipeline.Domain;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
@@ -18,14 +19,18 @@ namespace FuelPricePipeline.Infra.Eia
             _logger = logger;
         }
 
+        // EIA duoarea codes for the gasoline/diesel price series.
         private static readonly HashSet<string> ValidAreas = new HashSet<string>()
         {
             "NUS", // U.S. National
-            "PADD1", "PADD1A", "PADD1B", "PADD1C", // East Coast regions
-            "PADD2", // Midwest
-            "PADD3", // Gulf Coast
-            "PADD4", // Rocky Mountain
-            "PADD5" // West Coast
+            "R10", // PADD 1 (East Coast)
+            "R1X", // PADD 1A (New England)
+            "R1Y", // PADD 1B (Central Atlantic)
+            "R1Z", // PADD 1C (Lower Atlantic)
+            "R20", // PADD 2 (Midwest)
+            "R30", // PADD 3 (Gulf Coast)
+            "R40", // PADD 4 (Rocky Mountain)
+            "R50"  // PADD 5 (West Coast)
         };
 
         public async Task<DieselFuelPrice?> FetchLatestDieselAsync(string area = "NUS")
@@ -38,8 +43,10 @@ namespace FuelPricePipeline.Infra.Eia
 
             try
             {
-                var url = BuildUrl(area);
-                _logger.LogDebug("Fetching fuel rate from EIA API: {Url}", url);
+                // Build the query without the API key so it can be logged safely;
+                // the key is appended only on the actual request.
+                var query = BuildQuery(area);
+                _logger.LogDebug("Fetching fuel rate from EIA API: {Url}", BaseUrl + query);
 
                 var response = await _httpClient.GetAsync(url);
 
@@ -65,59 +72,105 @@ namespace FuelPricePipeline.Infra.Eia
             }
         }
 
-        private string BuildUrl(string area)
+        private static string BuildQuery(string area)
         {
-            var builder = new StringBuilder("https://api.eia.gov/v2/petroleum/pri/gnd/data/?");
-            builder.Append("frequency=monthly");
+            var builder = new StringBuilder();
+            builder.Append("frequency=weekly");
             builder.Append("&data[0]=value");
             builder.Append("&facets[product][]=EPD2D");
             builder.Append($"&facets[duoarea][]={Uri.EscapeDataString(area)}");
             builder.Append("&sort[0][column]=period&sort[0][direction]=desc");
             builder.Append("&offset=0&length=1");
-            builder.Append($"&api_key={_apiKey}");
             return builder.ToString();
         }
 
-        private static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
         private DieselFuelPrice? ParseResponse(string json)
         {
-            try
+            using var doc = JsonDocument.Parse(json, new JsonDocumentOptions
             {
-                var doc = JsonDocument.Parse(json, new JsonDocumentOptions
-                {
-                    AllowTrailingCommas = true
-                });
+                AllowTrailingCommas = true
+            });
 
-                if (!doc.RootElement.TryGetProperty("response", out var response) ||
-                    !response.TryGetProperty("data", out var data) ||
-                    data.GetArrayLength() == 0)
-                {
-                    _logger.LogWarning("EIA response contains no data");
-                    return null;
-                }
-
-                var firstItem = data[0];
-
-                return new DieselFuelPrice
-                {
-                    ProductCode = firstItem.GetProperty("product").GetString() ?? "",
-                    ProductName = firstItem.GetProperty("product-name").GetString() ?? "",
-                    AreaCode = firstItem.GetProperty("duoarea").GetString() ?? "",
-                    AreaName = firstItem.GetProperty("area-name").GetString() ?? "",
-                    Period = DateTime.Parse(firstItem.GetProperty("period").GetString() ?? DateTime.UtcNow.ToString("yyyy-MM")),
-                    Value = decimal.Parse(firstItem.GetProperty("value").GetString() ?? "0"),
-                    Unit = firstItem.GetProperty("units").GetString() ?? ""
-                };
-            }
-            catch (Exception ex)
+            if (!doc.RootElement.TryGetProperty("response", out var response) ||
+                !response.TryGetProperty("data", out var data) ||
+                data.GetArrayLength() == 0)
             {
-                _logger.LogError(ex, "Error parsing EIA response");
-                throw new JsonException("Failed to parse EIA API response", ex);
+                _logger.LogWarning("EIA response contains no data");
+                return null;
             }
+
+            var firstItem = data[0];
+
+            // Period and value are required. Don't save invalid data.
+            var periodText = GetString(firstItem, "period");
+
+            if (!DateTime.TryParseExact(periodText, new[] { "yyyy-MM-dd", "yyyy-MM" },
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out var period))
+            {
+                _logger.LogWarning("EIA response has a missing or invalid period: '{Period}'", periodText);
+                return null;
+            }
+
+            if (!TryGetDecimal(firstItem, "value", out var value))
+            {
+                _logger.LogWarning("EIA response has a missing or invalid value for period {Period}", periodText);
+                return null;
+            }
+
+            return new DieselFuelPrice
+            {
+                ProductCode = GetString(firstItem, "product"),
+                ProductName = GetString(firstItem, "product-name"),
+                AreaCode = GetString(firstItem, "duoarea"),
+                AreaName = GetString(firstItem, "area-name"),
+                Period = period,
+                Value = value,
+                Unit = GetString(firstItem, "units")
+            };
+        }
+
+        /// <summary>
+        /// Safely gets JSON string element.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private static string GetString(JsonElement item, string name)
+        {
+
+            return item.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
+                ? prop.GetString() ?? ""
+                : "";
+        }
+
+        /// <summary>
+        /// Safely gets JSON decimel element.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private static bool TryGetDecimal(JsonElement item, string name, out decimal value)
+        {
+            value = 0m;
+
+            if (!item.TryGetProperty(name, out var prop))
+            {
+                return false;
+            }
+
+            if (prop.ValueKind == JsonValueKind.Number)
+            {
+                return prop.TryGetDecimal(out value);
+            }
+
+            if (prop.ValueKind == JsonValueKind.String)
+            {
+                return decimal.TryParse(prop.GetString(), NumberStyles.Number,
+                    CultureInfo.InvariantCulture, out value);
+            }
+
+            return false;
         }
     }
 }

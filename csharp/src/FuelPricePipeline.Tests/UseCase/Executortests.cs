@@ -1,6 +1,5 @@
 ﻿using FuelPricePipeline.Domain;
-using FuelPricePipeline.Infra.Eia;
-using FuelPricePipeline.Infra.Postgres;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FuelPricePipeline.UseCase.GetLatest;
 using Moq;
 
@@ -11,6 +10,7 @@ public class ExecutorTests
 {
     private Mock<IEiaClient> _mockClient = null!;
     private Mock<IFuelRepository> _mockRepo = null!;
+    private Mock<ICsvWriter> _mockCsvWriter = null!;
     private Mock<Microsoft.Extensions.Logging.ILogger<Executor>> _mockLogger = null!;
     private Executor _executor = null!;
 
@@ -19,8 +19,9 @@ public class ExecutorTests
     {
         _mockClient = new Mock<IEiaClient>();
         _mockRepo = new Mock<IFuelRepository>();
+        _mockCsvWriter = new Mock<ICsvWriter>();
         _mockLogger = new Mock<Microsoft.Extensions.Logging.ILogger<Executor>>();
-        _executor = new Executor(_mockClient.Object, _mockRepo.Object, _mockLogger.Object);
+        _executor = new Executor(_mockClient.Object, _mockRepo.Object, _mockCsvWriter.Object, _mockLogger.Object);
     }
 
     [TestMethod]
@@ -51,6 +52,7 @@ public class ExecutorTests
         Assert.AreEqual(3.744m, result.Data.Value);
 
         _mockRepo.Verify(r => r.UpsertAsync(It.IsAny<DieselFuelPrice>()), Times.Once);
+        _mockCsvWriter.Verify(w => w.WriteAsync("test.csv", expectedPrice), Times.Once);
     }
 
     [TestMethod]
@@ -69,6 +71,7 @@ public class ExecutorTests
         Assert.IsTrue(result.ErrorMessage.Contains("Failed to get data"));
 
         _mockRepo.Verify(r => r.UpsertAsync(It.IsAny<DieselFuelPrice>()), Times.Never);
+        _mockCsvWriter.Verify(w => w.WriteAsync(It.IsAny<string>(), It.IsAny<DieselFuelPrice>()), Times.Never);
     }
 
     [TestMethod]

@@ -1,6 +1,4 @@
-namespace FuelPricePipeline.Infra.Eia;
-
-using FuelPricePipeline.Domain;
+﻿namespace FuelPricePipeline.Domain;
 
 public interface IEiaClient
 {

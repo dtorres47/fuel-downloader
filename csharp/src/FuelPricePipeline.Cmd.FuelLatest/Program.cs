@@ -1,5 +1,7 @@
 ﻿namespace FuelPricePipeline.Cmd.FuelLatest;
 
+using FuelPricePipeline.Domain;
+using FuelPricePipeline.Infra.CsvExport;
 using FuelPricePipeline.Infra.Eia;
 using FuelPricePipeline.Infra.Postgres;
 using FuelPricePipeline.UseCase.GetLatest;
@@ -38,6 +40,7 @@ class Program
                     sp.GetRequiredService<ILogger<Client>>()));
 
                 services.AddSingleton<IFuelRepository>(new Repo(dsn));
+                services.AddSingleton<ICsvWriter, CsvWriter>();
 
                 // Register use case
                 services.AddTransient<Executor>();
@@ -64,7 +67,7 @@ class Program
         if (result.IsSuccess && result.Data != null)
         {
             var fr = result.Data;
-            Console.WriteLine($" {fr.ProductCode} {fr.Period:yyyy-MM} {fr.Value} {fr.Unit} → {outputPath}");
+            Console.WriteLine($" {fr.ProductCode} {fr.Period:yyyy-MM-dd} {fr.Value} {fr.Unit} → {outputPath}");
         }
         else
         {

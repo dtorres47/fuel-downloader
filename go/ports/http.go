@@ -13,7 +13,7 @@ import (
 // HttpServer http fuel service
 // NOTE: fuel service uses delegates for the repo.
 type HttpServer struct {
-	fuelService *service.FuelService // postgres repo inherits
+	fuelService *service.FuelService // Postgres repo inherits
 	lock        sync.RWMutex
 }
 

@@ -1,21 +1,20 @@
 ﻿namespace FuelPricePipeline.UseCase.GetLatest;
 
 using FuelPricePipeline.Domain;
-using FuelPricePipeline.Infra.CsvExport;
-using FuelPricePipeline.Infra.Eia;
-using FuelPricePipeline.Infra.Postgres;
 using Microsoft.Extensions.Logging;
 
 public class Executor
 {
     private readonly IEiaClient _client;
     private readonly IFuelRepository _repo;
+    private readonly ICsvWriter _csvWriter;
     private readonly ILogger<Executor> _logger;
 
-    public Executor(IEiaClient client, IFuelRepository repo, ILogger<Executor> logger)
+    public Executor(IEiaClient client, IFuelRepository repo, ICsvWriter csvWriter, ILogger<Executor> logger)
     {
         _client = client;
         _repo = repo;
+        _csvWriter = csvWriter;
         _logger = logger;
     }
 
@@ -35,7 +34,7 @@ public class Executor
             }
 
             await _repo.UpsertAsync(fuelRate);
-            await Writer.WriteAsync(outputPath, fuelRate);
+            await _csvWriter.WriteAsync(outputPath, fuelRate);
 
             _logger.LogInformation("Successfully processed fuel rate: {Product} {Period} {Value}",
                 fuelRate.ProductCode, fuelRate.Period, fuelRate.Value);
